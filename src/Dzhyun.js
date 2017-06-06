@@ -124,8 +124,7 @@ class Dzhyun extends EventEmiter {
   }
 
   _connection() {
-    this._conn = this._conn || Promise.resolve(this._conn).then((conn) => {
-      if (conn) return conn;
+    this._conn = this._conn || Promise.resolve().then(() => {
       const tokenPromise = this.token && this.token.getToken ? this.token.getToken() : this.token;
       return Promise.resolve(tokenPromise)
         .catch(err => console.warn('request token fail', err))
@@ -201,7 +200,7 @@ class Dzhyun extends EventEmiter {
           return this._conn;
         });
     });
-    return this._conn;
+    return Promise.resolve(this._conn);
   }
 
   /**

@@ -23188,8 +23188,7 @@ var Dzhyun = function (_EventEmiter2) {
     value: function _connection() {
       var _this6 = this;
 
-      this._conn = this._conn || Promise.resolve(this._conn).then(function (conn) {
-        if (conn) return conn;
+      this._conn = this._conn || Promise.resolve().then(function () {
         var tokenPromise = _this6.token && _this6.token.getToken ? _this6.token.getToken() : _this6.token;
         return Promise.resolve(tokenPromise).catch(function (err) {
           return console.warn('request token fail', err);
@@ -23272,7 +23271,7 @@ var Dzhyun = function (_EventEmiter2) {
           return _this6._conn;
         });
       });
-      return this._conn;
+      return Promise.resolve(this._conn);
     }
 
     /**
