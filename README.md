@@ -11,7 +11,8 @@
           address: 'ws://gw.yundzh.com/ws',
           dataType: 'pb'
           token: 'xxxxxxx',
-      }).query('/kbspirit', { input: '600' }, function(data) {
+      });
+      dzhyun.query('/kbspirit', { input: '600' }, function(data) {
         ...
       }).then(function(data) {
         ...
