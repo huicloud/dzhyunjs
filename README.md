@@ -9,7 +9,7 @@
     <script>
       var dzhyun = new Dzhyun({
           address: 'ws://gw.yundzh.com/ws',
-          dataType: 'pb'
+          dataType: 'pb',
           token: 'xxxxxxx',
       });
       dzhyun.query('/kbspirit', { input: '600' }, function(data) {
