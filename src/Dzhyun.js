@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 
-import DzhyunDataParser from 'dzhyun-dataparser';
 import DzhyunConnection from 'dzhyun-connection';
+import DzhyunDataParser from 'dzhyun-dataparser';
 
 import { param, unParam } from './util';
 

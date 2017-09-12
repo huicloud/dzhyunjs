@@ -1,4 +1,4 @@
-export * from 'dzhyun-connection/src/util';
+export * from 'dzhyun-connection/lib/util';
 
 export function unParam(searchStr) {
   return (searchStr.indexOf('?') === 0 ? searchStr.substring(1) : searchStr).split('&').reduce((result, pair) => {
