@@ -1,3 +1,10 @@
 {
-  "presets": ["es2015", "stage-2"]
+  "presets": ["es2015", "stage-2"],
+  "plugins": [
+    ["rewrite-require", {
+      "aliases": {
+        "dzhyun-connection/src/util": "dzhyun-connection/lib/util",
+      },
+    }],
+  ],
 }

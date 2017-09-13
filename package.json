@@ -1,6 +1,6 @@
 {
   "name": "dzhyunjs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "大智慧云JS库",
   "main": "lib/Dzhyun.js",
   "scripts": {},

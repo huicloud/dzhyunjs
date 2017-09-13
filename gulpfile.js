@@ -24,15 +24,7 @@ gulp.task('clean-dist', function() {
 
 gulp.task('node-lib', ['clean-lib'], function () {
   return gulp.src(src)
-    .pipe(babel({
-      plugins: [
-        ["rewrite-require", {
-          "aliases": {
-            "dzhyun-connection/src/util": "dzhyun-connection/lib/util",
-          },
-        }],
-      ],
-    }))
+    .pipe(babel())
     .pipe(gulp.dest(lib));
 });
 
