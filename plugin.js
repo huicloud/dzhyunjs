@@ -21,6 +21,12 @@ class DzhyunSDKPlugin {
         use: 'null-loader',
       });
     }
+    if (this.options.wxapp !== true) {
+      rules.push({
+        test: /wxadapter/,
+        use: 'null-loader',
+      });
+    }
   }
 }
 module.exports = DzhyunSDKPlugin;

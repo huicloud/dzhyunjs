@@ -1,6 +1,6 @@
 {
   "name": "dzhyunjs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "大智慧云JS库",
   "main": "lib/Dzhyun.js",
   "scripts": {},
@@ -25,16 +25,16 @@
     "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.3",
-    "gulp": "^3.9.1",
+    "gulp": "^4.0.0",
     "gulp-babel": "^6.1.2",
     "gulp-if": "^2.0.2",
-    "null-loader": "^0.1.1",
     "through-gulp": "^0.5.0",
     "webpack": "^2.2.1",
     "webpack-stream": "^3.2.0"
   },
   "dependencies": {
     "dzhyun-connection": "^1.0.0",
-    "dzhyun-dataparser": "^1.0.0"
+    "dzhyun-dataparser": "^1.0.5",
+    "null-loader": "^0.1.1"
   }
 }
