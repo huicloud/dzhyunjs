@@ -42,6 +42,7 @@ new Dzhyun(options) 对于websocket方式，一个Dzhyun实例对应一个websoc
 - **options.dataParser** `Object` 可选, 数据解析器，需要有一个parse方法，默认为DzhyunDataParser的实例，详细参照<https://github.com/huicloud/dzhyun-dataparser>
 - **options.token** `String|Promise|DzhyunTokenManager` 可选，设置云平台访问令牌，可以使用DzhyunTokenManager，详细参照<https://github.com/huicloud/dzhyun-token>
 - **options.generateQid** `Function` 可选，设置请求qid的生成方法，调用时可以得到的参数是接口url和查询参数，默认生成递增数字作为qid，
+- **options.secure** `Boolean` 可选，设置是否以ssl安全协议请求服务器地址，默认根据页面url自动判断
 
 ##### 实例方法
 Dzhyun.prototype.query(url, params, callback, shrinkData) 查询指定的接口

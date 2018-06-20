@@ -105,6 +105,7 @@ class Dzhyun extends EventEmiter {
                 dataParser,
                 token,
                 generateQid,
+                secure,
               } = {}) {
     super();
     this.address = address;
@@ -113,6 +114,7 @@ class Dzhyun extends EventEmiter {
     this.dataParser = dataParser || new DzhyunDataParser({ compresser });
     this.token = token;
     this.generateQid = generateQid || getQid;
+    this.secure = secure;
 
     this._requests = {};
 
@@ -187,7 +189,7 @@ class Dzhyun extends EventEmiter {
               this.trigger('error', err);
               // TODO 请求失败考虑请求
             },
-          });
+          }, this.secure);
           const connectionType = connection._protocol;
           if (token) {
             if (connectionType === 'ws' && connection._address.indexOf('token=') < 0) {

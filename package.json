@@ -1,6 +1,6 @@
 {
   "name": "dzhyunjs",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "大智慧云JS库",
   "main": "lib/Dzhyun.js",
   "scripts": {},
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "dzhyun-connection": "^1.0.0",
-    "dzhyun-dataparser": "^1.0.5",
+    "dzhyun-dataparser": "^1.0.0",
     "null-loader": "^0.1.1"
   }
 }

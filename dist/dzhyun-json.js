@@ -133,7 +133,7 @@ var BaseConnection = function () {
    * @param {!string} address 连接地址
    * @param {!object} options 设置参数
    * @param {object=} handler 事件处理对象
-   * @param {boolean=} [secure=false]
+   * @param {boolean=} secure 是否使用ssl(https 或者 wss)，默认根据页面url自动判断
    */
   function BaseConnection(address, options, handler, secure) {
     _classCallCheck(this, BaseConnection);
@@ -143,7 +143,7 @@ var BaseConnection = function () {
     }
     if (this.constructor === BaseConnection) {
       // eslint-disable-next-line no-use-before-define
-      return getInstance(address, options, handler);
+      return getInstance(address, options, handler, secure);
     }
     this._address = address;
     this.options = options || {};
@@ -248,13 +248,24 @@ BaseConnection.EVENT_RESPONSE = 'response';
 BaseConnection.EVENT_MESSAGE = 'message';
 BaseConnection.EVENT_PROGRESS = 'progress';
 
+function getDefaultSecure() {
+  if (typeof window !== 'undefined' && window.location) {
+    return (/^https:/.test(window.location.href)
+    );
+  }
+  return false;
+}
+
 function getInstance(url, options, handler) {
-  var _$exec = /^((\w+):\/\/)?(.*)/.exec(url),
+  var secure = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : getDefaultSecure();
+
+  var _$exec = /^((\w+)s*:\/\/)?(.*)/.exec(url),
       _$exec2 = _slicedToArray(_$exec, 4),
       _$exec2$ = _$exec2[2],
-      protocol = _$exec2$ === undefined ? 'http' : _$exec2$,
+      p = _$exec2$ === undefined ? 'http' : _$exec2$,
       urlWithoutProtocol = _$exec2[3];
 
+  var protocol = secure ? p + 's' : p;
   var func = BaseConnection[protocol];
   if (!func) {
     throw new Error('protocol "' + protocol + '" no support');
@@ -672,7 +683,8 @@ var Dzhyun = function (_EventEmiter2) {
         compresser = _ref3.compresser,
         dataParser = _ref3.dataParser,
         token = _ref3.token,
-        generateQid = _ref3.generateQid;
+        generateQid = _ref3.generateQid,
+        secure = _ref3.secure;
 
     _classCallCheck(this, Dzhyun);
 
@@ -684,6 +696,7 @@ var Dzhyun = function (_EventEmiter2) {
     _this5.dataParser = dataParser || new _dzhyunDataparser2.default({ compresser: compresser });
     _this5.token = token;
     _this5.generateQid = generateQid || getQid;
+    _this5.secure = secure;
 
     _this5._requests = {};
 
@@ -770,7 +783,7 @@ var Dzhyun = function (_EventEmiter2) {
               _this6.trigger('error', err);
               // TODO 请求失败考虑请求
             }
-          });
+          }, _this6.secure);
           var connectionType = connection._protocol;
           if (token) {
             if (connectionType === 'ws' && connection._address.indexOf('token=') < 0) {
