@@ -125,10 +125,13 @@ class Dzhyun extends EventEmiter {
     this.alias('error');
   }
 
+  _tokenPromise() {
+    return Promise.resolve(this.token && this.token.getToken ? this.token.getToken() : this.token);
+  }
+
   _connection() {
     this._conn = this._conn || Promise.resolve().then(() => {
-      const tokenPromise = this.token && this.token.getToken ? this.token.getToken() : this.token;
-      return Promise.resolve(tokenPromise)
+      return this._tokenPromise()
         .catch(err => console.warn('request token fail', err))
         .then((token) => {
           const connection = new DzhyunConnection(this.address, { deferred: true }, {
@@ -197,7 +200,7 @@ class Dzhyun extends EventEmiter {
             }
           }
           this._conn = connection;
-          this._token = token;
+          // this._token = token;
           this._connectionType = connectionType;
           return this._conn;
         });
@@ -238,20 +241,38 @@ class Dzhyun extends EventEmiter {
     }
 
     const request = new Request({ qid, serviceUrl, queryObject, callback, shrinkData });
-    this._requests[qid] = request;
     request.cancel = this.cancel.bind(this, qid);
-    this._connection().then((conn) => {
-      // 请求已经取消则直接返回
-      if (!this._requests[request.qid]) return;
+    request.start = () => {
+      this._requests[qid] = request;
       let options;
-      if (this._connectionType === 'http') {
-        queryObject.token = queryObject.token || this._token;
-        // 如果以http协议请求pb格式数据时，需设置额外参数以指定响应数据是二进制数据
-        options = { dataType: 'arraybuffer' };
-      }
-      const requestParams = formatParams(queryObject);
-      conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
-    });
+      this._connection().then((conn) => {
+        if (this._connectionType === 'http') {
+          options = { dataType: 'arraybuffer' };
+          return this._tokenPromise().then((token) => {
+            queryObject.token = token;
+            return conn;
+          });
+        }
+        return conn;
+      }).then((conn) => {
+        const requestParams = formatParams(queryObject);
+        conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
+      });
+    };
+
+    // this._connection().then((conn) => {
+    //   // 请求已经取消则直接返回
+    //   if (!this._requests[request.qid]) return;
+    //   let options;
+    //   if (this._connectionType === 'http') {
+    //     queryObject.token = queryObject.token || this._token;
+    //     // 如果以http协议请求pb格式数据时，需设置额外参数以指定响应数据是二进制数据
+    //     options = { dataType: 'arraybuffer' };
+    //   }
+    //   const requestParams = formatParams(queryObject);
+    //   conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
+    // });
+    request.start();
     return request;
   }
 

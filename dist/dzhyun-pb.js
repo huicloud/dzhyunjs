@@ -21062,13 +21062,17 @@ var Dzhyun = function (_EventEmiter2) {
   }
 
   _createClass(Dzhyun, [{
+    key: '_tokenPromise',
+    value: function _tokenPromise() {
+      return Promise.resolve(this.token && this.token.getToken ? this.token.getToken() : this.token);
+    }
+  }, {
     key: '_connection',
     value: function _connection() {
       var _this6 = this;
 
       this._conn = this._conn || Promise.resolve().then(function () {
-        var tokenPromise = _this6.token && _this6.token.getToken ? _this6.token.getToken() : _this6.token;
-        return Promise.resolve(tokenPromise).catch(function (err) {
+        return _this6._tokenPromise().catch(function (err) {
           return console.warn('request token fail', err);
         }).then(function (token) {
           var connection = new _dzhyunConnection2.default(_this6.address, { deferred: true }, {
@@ -21144,7 +21148,7 @@ var Dzhyun = function (_EventEmiter2) {
             }
           }
           _this6._conn = connection;
-          _this6._token = token;
+          // this._token = token;
           _this6._connectionType = connectionType;
           return _this6._conn;
         });
@@ -21194,20 +21198,38 @@ var Dzhyun = function (_EventEmiter2) {
       }
 
       var request = new Request({ qid: qid, serviceUrl: serviceUrl, queryObject: queryObject, callback: callback, shrinkData: shrinkData });
-      this._requests[qid] = request;
       request.cancel = this.cancel.bind(this, qid);
-      this._connection().then(function (conn) {
-        // 请求已经取消则直接返回
-        if (!_this7._requests[request.qid]) return;
+      request.start = function () {
+        _this7._requests[qid] = request;
         var options = void 0;
-        if (_this7._connectionType === 'http') {
-          queryObject.token = queryObject.token || _this7._token;
-          // 如果以http协议请求pb格式数据时，需设置额外参数以指定响应数据是二进制数据
-          options = { dataType: 'arraybuffer' };
-        }
-        var requestParams = formatParams(queryObject);
-        conn.request(requestParams ? serviceUrl + '?' + requestParams : serviceUrl, options);
-      });
+        _this7._connection().then(function (conn) {
+          if (_this7._connectionType === 'http') {
+            options = { dataType: 'arraybuffer' };
+            return _this7._tokenPromise().then(function (token) {
+              queryObject.token = token;
+              return conn;
+            });
+          }
+          return conn;
+        }).then(function (conn) {
+          var requestParams = formatParams(queryObject);
+          conn.request(requestParams ? serviceUrl + '?' + requestParams : serviceUrl, options);
+        });
+      };
+
+      // this._connection().then((conn) => {
+      //   // 请求已经取消则直接返回
+      //   if (!this._requests[request.qid]) return;
+      //   let options;
+      //   if (this._connectionType === 'http') {
+      //     queryObject.token = queryObject.token || this._token;
+      //     // 如果以http协议请求pb格式数据时，需设置额外参数以指定响应数据是二进制数据
+      //     options = { dataType: 'arraybuffer' };
+      //   }
+      //   const requestParams = formatParams(queryObject);
+      //   conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
+      // });
+      request.start();
       return request;
     }
   }, {
