@@ -45,7 +45,7 @@ new Dzhyun(options) 对于websocket方式，一个Dzhyun实例对应一个websoc
 - **options.secure** `Boolean` 可选，设置是否以ssl安全协议请求服务器地址，默认根据页面url自动判断
 
 ##### 实例方法
-Dzhyun.prototype.query(url, params, callback, shrinkData) 查询指定的接口
+Dzhyun.prototype.query(url, params, callback, shrinkData, immediate) 查询指定的接口
 - **url** `String` 必填，指定的接口url，可以带着参数（'/stkdata?obj=SH600000&field=ZhangFu'）
 - **params** `Object` 可选，设置的查询参数，会覆盖url带着的相同的参数，output,compresser,qid,sub这些参数也可以设置，会覆盖默认值
 - **callback** `Function` 可选，回调函数，回调的参数如下
@@ -54,6 +54,7 @@ Dzhyun.prototype.query(url, params, callback, shrinkData) 查询指定的接口
 >- **code** `Number` 错误编号，对于错误返回是有效，正常返回是code为undefined，第一参数result中也包含相同code属性值
 >- **desc** `String` 错误信息，对于错误返回是有效，正常返回是desc为undefined，第一参数result中也包含相同desc属性值
 - **shrinkData** `Boolean` 可选，是否简化返回数据，默认true，只返回数据中 Data.RepXXX 对应的数据，设置为false可以直接得到Data的数据
+- **immediate** `Boolean` 可选，是否立即请求数据，默认true，设置为false时则不会立即请求而是返回request，可以手动调用request.start()去请求数据
 - **return** `Request` 返回内置的Request请求对象，具体说明如下
 >- Request.prototype.qid `String` 请求的qid
 >- Request.prototype.on(type, callback) 事件监听方法，参数如下
@@ -65,8 +66,9 @@ Dzhyun.prototype.query(url, params, callback, shrinkData) 查询指定的接口
 >- Request.prototype.then(successCallback, errorCallback) 提供类Promise接口，调用后返回的是标准的Promise对象，注意Promise的回调只会调用一次，最好不要用在订阅请求中
 >- Request.prototype.catch(errorCallback) 提供类Promise接口，调用后返回的是标准的Promise对象
 >- Request.prototype.cancel() 取消该请求
+>- Request.prototype.start() 开始请求，用于手动控制请求时机，可以配合查询时的 immediate=false 使用，也可以用作request再次请求，注意再次请求时qid不会变化，因此请确保在cancel后再次请求
 
-Dzhyun.prototype.subscribe(url, params, callback, shrinkData) 订阅查询指定的接口，参数和返回值与query方法相同，调用默认带上sub=1的参数
+Dzhyun.prototype.subscribe(url, params, callback, shrinkData, immediate) 订阅查询指定的接口，参数和返回值与query方法相同，调用默认带上sub=1的参数
 
 Dzhyun.prototype.cancel(qid) 取消指定qid的请求，对于尚未发出的请求直接取消，已发出的订阅请求则会发出/cancel?qid=xxx取消对应的请求
 - **qid** `String` 可选，指定的请求qid，如果没有指定则取消所有请求

@@ -809,11 +809,13 @@ var Dzhyun = function (_EventEmiter2) {
      * @param {Object=} params 参数
      * @param {function=} callback 回调函数
      * @param {boolean=} shrinkData 返回的数据是否简化结构，默认值是true
+     * @param {boolean=} immediate 是否立即请求数据，默认true，
+     *   设置为false时则不会立即请求而是返回request，可以手动调用request.start()去请求数据
      */
 
   }, {
     key: 'query',
-    value: function query(url, params, callback, shrinkData) {
+    value: function query(url, params, callback, shrinkData, immediate) {
       var _this7 = this;
 
       if (typeof url !== 'string') throw new Error('url must be a string');
@@ -876,12 +878,14 @@ var Dzhyun = function (_EventEmiter2) {
       //   const requestParams = formatParams(queryObject);
       //   conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
       // });
-      request.start();
+      if (immediate !== false) {
+        request.start();
+      }
       return request;
     }
   }, {
     key: 'subscribe',
-    value: function subscribe(url, params, callback, shrinkData) {
+    value: function subscribe(url, params, callback, shrinkData, immediate) {
       if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) !== 'object') {
         shrinkData = callback; // eslint-disable-line
         callback = params; // eslint-disable-line
@@ -889,7 +893,7 @@ var Dzhyun = function (_EventEmiter2) {
       }
       params = params || {}; // eslint-disable-line
       params.sub = 1; // eslint-disable-line
-      return this.query(url, params, callback, shrinkData);
+      return this.query(url, params, callback, shrinkData, immediate);
     }
   }, {
     key: '_cancelRequest',

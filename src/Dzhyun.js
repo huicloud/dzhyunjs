@@ -214,8 +214,10 @@ class Dzhyun extends EventEmiter {
    * @param {Object=} params 参数
    * @param {function=} callback 回调函数
    * @param {boolean=} shrinkData 返回的数据是否简化结构，默认值是true
+   * @param {boolean=} immediate 是否立即请求数据，默认true，
+   *   设置为false时则不会立即请求而是返回request，可以手动调用request.start()去请求数据
    */
-  query(url, params, callback, shrinkData) {
+  query(url, params, callback, shrinkData, immediate) {
     if (typeof url !== 'string') throw new Error('url must be a string');
     if (typeof params !== 'object') {
       shrinkData = callback; // eslint-disable-line
@@ -272,11 +274,13 @@ class Dzhyun extends EventEmiter {
     //   const requestParams = formatParams(queryObject);
     //   conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
     // });
-    request.start();
+    if (immediate !== false) {
+      request.start();
+    }
     return request;
   }
 
-  subscribe(url, params, callback, shrinkData) {
+  subscribe(url, params, callback, shrinkData, immediate) {
     if (typeof params !== 'object') {
       shrinkData = callback; // eslint-disable-line
       callback = params; // eslint-disable-line
@@ -284,7 +288,7 @@ class Dzhyun extends EventEmiter {
     }
     params = params || {};  // eslint-disable-line
     params.sub = 1;  // eslint-disable-line
-    return this.query(url, params, callback, shrinkData);
+    return this.query(url, params, callback, shrinkData, immediate);
   }
 
   _cancelRequest(qid) {
