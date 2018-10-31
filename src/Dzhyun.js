@@ -185,10 +185,12 @@ class Dzhyun extends EventEmiter {
               }
             },
             close: () => {
+              this._conn = null;
               this.trigger('close');
               // TODO 连接中断考虑重连
             },
             error: (err) => {
+              this._conn = null;
               this.trigger('error', err);
               // TODO 请求失败考虑请求
             },
