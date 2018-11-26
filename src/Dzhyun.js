@@ -106,6 +106,10 @@ class Dzhyun extends EventEmiter {
                 token,
                 generateQid,
                 secure,
+                ping = false,
+                pingInterval = 30 * 1000, // 30秒
+                reconnect = false,
+                reconnectInterval = 10 * 1000, // 10秒
               } = {}) {
     super();
     this.address = address;
@@ -115,8 +119,13 @@ class Dzhyun extends EventEmiter {
     this.token = token;
     this.generateQid = generateQid || getQid;
     this.secure = secure;
+    this.ping = ping;
+    this.pingInterval = pingInterval;
+    this.reconnect = reconnect;
+    this.reconnectInterval = reconnectInterval;
 
     this._requests = {};
+    this._resetReconnectCount();
 
     this.alias('open');
     this.alias('close');
@@ -134,21 +143,45 @@ class Dzhyun extends EventEmiter {
       return this._tokenPromise()
         .catch(err => console.warn('request token fail', err))
         .then((token) => {
+          let lastTime;
           const connection = new DzhyunConnection(this.address, { deferred: true }, {
             open: () => {
               this.trigger('open');
+              this._resetReconnectCount();
+
+              // 通过发送/ping保持连接，默认每30秒发送一次
+              lastTime = Date.now();
+              if (this.ping) {
+                const pingInterval = this.pingInterval;
+                const ping = () => {
+                  setTimeout(() => {
+                    if (connection.getStatus() === 1) {
+                      // 多计算5秒避免刚好两次30秒超过了后台的1分钟ping/pong判断
+                      if ((Date.now() - lastTime) + (5 * 1000) >= pingInterval) {
+                        connection.request('/ping');
+                      }
+                      ping();
+                    }
+                  }, pingInterval);
+                };
+                ping();
+              }
             },
             request: (message) => {
-              this.trigger('request', message);
+              lastTime = Date.now();
+              if (message !== '/ping') {
+                this.trigger('request', message);
+              }
             },
             response: (data) => {
+              lastTime = Date.now();
               this.trigger('response', data);
 
               // 解析数据
               if (this.dataParser) {
                 Promise.resolve(this.dataParser.parse || this.dataParser).then((parse) => {
                   parse.call(this.dataParser, data).then(({ Qid, Err, Counter, Data = {} }) => {
-                    if (!Qid) console.warn('Qid does not exist.');
+                    if (!Qid) console.debug('Qid does not exist.');
                     else {
                       const request = this._requests[Qid];
                       if (request) {
@@ -187,12 +220,12 @@ class Dzhyun extends EventEmiter {
             close: () => {
               this._conn = null;
               this.trigger('close');
-              // TODO 连接中断考虑重连
+              this._reconnect();
             },
             error: (err) => {
               this._conn = null;
               this.trigger('error', err);
-              // TODO 请求失败考虑请求
+              this._reconnect();
             },
           }, this.secure);
           const connectionType = connection._protocol;
@@ -208,6 +241,25 @@ class Dzhyun extends EventEmiter {
         });
     });
     return Promise.resolve(this._conn);
+  }
+
+  _reconnect() {
+    if (this.reconnect === true || this.reconnect > this._reconnectCount) {
+      if (this._reconnectTid) {
+        clearTimeout(this._reconnectTid);
+      }
+      // 并不直接重连而是直接将现在的数据请求重新执行
+      this._reconnectTid = setTimeout(() => {
+        const requests = this._requests;
+        Object.keys(this._requests).forEach(key => requests[key].start());
+        this._reconnectCount += 1;
+        this.trigger('reconnect');
+      }, this.reconnectInterval);
+    }
+  }
+
+  _resetReconnectCount() {
+    this._reconnectCount = 0;
   }
 
   /**
@@ -294,7 +346,7 @@ class Dzhyun extends EventEmiter {
   }
 
   _cancelRequest(qid) {
-    if (this._connectionType === 'ws' && this._conn && this._conn.getStatus() === 1) {
+    if (this._connectionType === 'ws' && this._conn && this._conn.getStatus && this._conn.getStatus() === 1) {
       this._conn.request(`/cancel?qid=${qid}`);
     }
   }

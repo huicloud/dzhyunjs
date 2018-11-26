@@ -43,6 +43,10 @@ new Dzhyun(options) 对于websocket方式，一个Dzhyun实例对应一个websoc
 - **options.token** `String|Promise|DzhyunTokenManager` 可选，设置云平台访问令牌，可以使用DzhyunTokenManager，详细参照<https://github.com/huicloud/dzhyun-token>
 - **options.generateQid** `Function` 可选，设置请求qid的生成方法，调用时可以得到的参数是接口url和查询参数，默认生成递增数字作为qid，
 - **options.secure** `Boolean` 可选，设置是否以ssl安全协议请求服务器地址，默认根据页面url自动判断
+- **options.ping** `Boolean` 可选，设置是否自动定时发ping请求用于和云平台保持websocket连接，默认false
+- **options.pingInterval** `Number` 可选，设置自动ping请求的间隔毫秒数，默认30 * 1000
+- **options.reconnect** `Boolean|Number` 可选，设置当连接中断时是否自动重连并且会将当前请求重新执行，默认false，设置为数字表示自动重连的最大次数
+- **options.reconnectInterval** `Number` 可选，设置连接中断到自动重连的间隔时间毫秒数，默认10 * 1000
 
 ##### 实例方法
 Dzhyun.prototype.query(url, params, callback, shrinkData, immediate) 查询指定的接口

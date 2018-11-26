@@ -1,6 +1,6 @@
 {
   "name": "dzhyunjs",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "大智慧云JS库",
   "main": "lib/Dzhyun.js",
   "scripts": {},
@@ -33,7 +33,7 @@
     "webpack-stream": "^3.2.0"
   },
   "dependencies": {
-    "dzhyun-connection": "^1.0.0",
+    "dzhyun-connection": "^1.0.7",
     "dzhyun-dataparser": "^1.0.0",
     "null-loader": "^0.1.1"
   }

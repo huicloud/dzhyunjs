@@ -21037,7 +21037,15 @@ var Dzhyun = function (_EventEmiter2) {
         dataParser = _ref3.dataParser,
         token = _ref3.token,
         generateQid = _ref3.generateQid,
-        secure = _ref3.secure;
+        secure = _ref3.secure,
+        _ref3$ping = _ref3.ping,
+        ping = _ref3$ping === undefined ? false : _ref3$ping,
+        _ref3$pingInterval = _ref3.pingInterval,
+        pingInterval = _ref3$pingInterval === undefined ? 30 * 1000 : _ref3$pingInterval,
+        _ref3$reconnect = _ref3.reconnect,
+        reconnect = _ref3$reconnect === undefined ? false : _ref3$reconnect,
+        _ref3$reconnectInterv = _ref3.reconnectInterval,
+        reconnectInterval = _ref3$reconnectInterv === undefined ? 10 * 1000 : _ref3$reconnectInterv;
 
     _classCallCheck(this, Dzhyun);
 
@@ -21050,8 +21058,13 @@ var Dzhyun = function (_EventEmiter2) {
     _this5.token = token;
     _this5.generateQid = generateQid || getQid;
     _this5.secure = secure;
+    _this5.ping = ping;
+    _this5.pingInterval = pingInterval;
+    _this5.reconnect = reconnect;
+    _this5.reconnectInterval = reconnectInterval;
 
     _this5._requests = {};
+    _this5._resetReconnectCount();
 
     _this5.alias('open');
     _this5.alias('close');
@@ -21075,14 +21088,38 @@ var Dzhyun = function (_EventEmiter2) {
         return _this6._tokenPromise().catch(function (err) {
           return console.warn('request token fail', err);
         }).then(function (token) {
+          var lastTime = void 0;
           var connection = new _dzhyunConnection2.default(_this6.address, { deferred: true }, {
             open: function open() {
               _this6.trigger('open');
+              _this6._resetReconnectCount();
+
+              // 通过发送/ping保持连接，默认每30秒发送一次
+              lastTime = Date.now();
+              if (_this6.ping) {
+                var pingInterval = _this6.pingInterval;
+                var ping = function ping() {
+                  setTimeout(function () {
+                    if (connection.getStatus() === 1) {
+                      // 多计算5秒避免刚好两次30秒超过了后台的1分钟ping/pong判断
+                      if (Date.now() - lastTime + 5 * 1000 >= pingInterval) {
+                        connection.request('/ping');
+                      }
+                      ping();
+                    }
+                  }, pingInterval);
+                };
+                ping();
+              }
             },
             request: function request(message) {
-              _this6.trigger('request', message);
+              lastTime = Date.now();
+              if (message !== '/ping') {
+                _this6.trigger('request', message);
+              }
             },
             response: function response(data) {
+              lastTime = Date.now();
               _this6.trigger('response', data);
 
               // 解析数据
@@ -21095,7 +21132,7 @@ var Dzhyun = function (_EventEmiter2) {
                         _ref4$Data = _ref4.Data,
                         Data = _ref4$Data === undefined ? {} : _ref4$Data;
 
-                    if (!Qid) console.warn('Qid does not exist.');else {
+                    if (!Qid) console.debug('Qid does not exist.');else {
                       var request = _this6._requests[Qid];
                       if (request) {
                         if (Err !== 0) {
@@ -21135,12 +21172,12 @@ var Dzhyun = function (_EventEmiter2) {
             close: function close() {
               _this6._conn = null;
               _this6.trigger('close');
-              // TODO 连接中断考虑重连
+              _this6._reconnect();
             },
             error: function error(err) {
               _this6._conn = null;
               _this6.trigger('error', err);
-              // TODO 请求失败考虑请求
+              _this6._reconnect();
             }
           }, _this6.secure);
           var connectionType = connection._protocol;
@@ -21157,6 +21194,31 @@ var Dzhyun = function (_EventEmiter2) {
       });
       return Promise.resolve(this._conn);
     }
+  }, {
+    key: '_reconnect',
+    value: function _reconnect() {
+      var _this7 = this;
+
+      if (this.reconnect === true || this.reconnect > this._reconnectCount) {
+        if (this._reconnectTid) {
+          clearTimeout(this._reconnectTid);
+        }
+        // 并不直接重连而是直接将现在的数据请求重新执行
+        this._reconnectTid = setTimeout(function () {
+          var requests = _this7._requests;
+          Object.keys(_this7._requests).forEach(function (key) {
+            return requests[key].start();
+          });
+          _this7._reconnectCount += 1;
+          _this7.trigger('reconnect');
+        }, this.reconnectInterval);
+      }
+    }
+  }, {
+    key: '_resetReconnectCount',
+    value: function _resetReconnectCount() {
+      this._reconnectCount = 0;
+    }
 
     /**
      * 查询方法
@@ -21171,7 +21233,7 @@ var Dzhyun = function (_EventEmiter2) {
   }, {
     key: 'query',
     value: function query(url, params, callback, shrinkData, immediate) {
-      var _this7 = this;
+      var _this8 = this;
 
       if (typeof url !== 'string') throw new Error('url must be a string');
       if ((typeof params === 'undefined' ? 'undefined' : _typeof(params)) !== 'object') {
@@ -21204,12 +21266,12 @@ var Dzhyun = function (_EventEmiter2) {
       var request = new Request({ qid: qid, serviceUrl: serviceUrl, queryObject: queryObject, callback: callback, shrinkData: shrinkData });
       request.cancel = this.cancel.bind(this, qid);
       request.start = function () {
-        _this7._requests[qid] = request;
+        _this8._requests[qid] = request;
         var options = void 0;
-        _this7._connection().then(function (conn) {
-          if (_this7._connectionType === 'http') {
+        _this8._connection().then(function (conn) {
+          if (_this8._connectionType === 'http') {
             options = { dataType: 'arraybuffer' };
-            return _this7._tokenPromise().then(function (token) {
+            return _this8._tokenPromise().then(function (token) {
               queryObject.token = token;
               return conn;
             });
@@ -21253,7 +21315,7 @@ var Dzhyun = function (_EventEmiter2) {
   }, {
     key: '_cancelRequest',
     value: function _cancelRequest(qid) {
-      if (this._connectionType === 'ws' && this._conn && this._conn.getStatus() === 1) {
+      if (this._connectionType === 'ws' && this._conn && this._conn.getStatus && this._conn.getStatus() === 1) {
         this._conn.request('/cancel?qid=' + qid);
       }
     }
@@ -21266,7 +21328,7 @@ var Dzhyun = function (_EventEmiter2) {
   }, {
     key: 'cancel',
     value: function cancel(qid) {
-      var _this8 = this;
+      var _this9 = this;
 
       if (qid) {
         this._cancelRequest(qid);
@@ -21274,7 +21336,7 @@ var Dzhyun = function (_EventEmiter2) {
       } else {
         var requests = this._requests;
         Object.keys(requests).forEach(function (eachQid) {
-          _this8._cancelRequest(eachQid);
+          _this9._cancelRequest(eachQid);
           delete requests[eachQid];
         });
       }
