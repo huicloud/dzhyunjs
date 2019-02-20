@@ -191,6 +191,7 @@ class Dzhyun extends EventEmiter {
                           const error = new Error(desc || 'unknown error');
                           error.desc = desc;
                           error.code = code;
+                          error.data = Data; // 将原始错误信息数据通过data属性暴露出去，使之可以处理复杂的嵌套错误
                           request.error(error, Counter, code, desc);
                         } else {
                           let resultData = Data;
