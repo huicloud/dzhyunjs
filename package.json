@@ -1,6 +1,6 @@
 {
   "name": "dzhyunjs",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "大智慧云JS库",
   "main": "lib/Dzhyun.js",
   "scripts": {},
@@ -22,7 +22,7 @@
     "eslint": "^3.18.0",
     "eslint-config-airbnb": "^14.1.0",
     "eslint-plugin-html": "^2.0.1",
-    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-jsx-a11y": "^4.0.0",
     "eslint-plugin-react": "^6.10.3",
     "gulp": "^4.0.0",
@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "dzhyun-connection": "^1.0.7",
-    "dzhyun-dataparser": "^1.0.0",
+    "dzhyun-dataparser": "^1.0.6",
     "null-loader": "^0.1.1"
   }
 }

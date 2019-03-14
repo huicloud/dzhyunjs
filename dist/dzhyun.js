@@ -21271,7 +21271,7 @@ var Dzhyun = function (_EventEmiter2) {
         var options = void 0;
         _this8._connection().then(function (conn) {
           if (_this8._connectionType === 'http') {
-            options = { dataType: 'arraybuffer' };
+            options = queryObject.output === 'pb' ? { dataType: 'arraybuffer' } : undefined;
             return _this8._tokenPromise().then(function (token) {
               queryObject.token = token;
               return conn;
@@ -21564,6 +21564,12 @@ var WebSocketConnection = function (_BaseConnection) {
 
     if (deferred === false) {
       _this._connect();
+    }
+    // 在浏览器环境中，监听离线事件将手动中断ws连接
+    if (typeof window !== 'undefined') {
+      window.addEventListener('offline', function () {
+        return _this.close();
+      });
     }
     return _this;
   }
@@ -22066,7 +22072,7 @@ function convertToJsonArray(input) {
 
 function parseJSON(input) {
   return Promise.resolve().then(function () {
-    var json = input instanceof ArrayBuffer ? (0, _util.arrayBufferToString)(input) : input;
+    var json = typeof ArrayBuffer !== 'undefined' && input instanceof ArrayBuffer ? (0, _util.arrayBufferToString)(input) : input;
     var response = JSON.parse(json);
     if (response.Err !== 0) {
       return response;

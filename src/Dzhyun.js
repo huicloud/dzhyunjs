@@ -304,7 +304,7 @@ class Dzhyun extends EventEmiter {
       let options;
       this._connection().then((conn) => {
         if (this._connectionType === 'http') {
-          options = { dataType: 'arraybuffer' };
+          options = queryObject.output === 'pb' ? { dataType: 'arraybuffer' } : undefined;
           return this._tokenPromise().then((token) => {
             queryObject.token = token;
             return conn;
