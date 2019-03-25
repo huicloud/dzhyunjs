@@ -275,11 +275,13 @@ class Dzhyun extends EventEmiter {
   query(url, params, callback, shrinkData, immediate) {
     if (typeof url !== 'string') throw new Error('url must be a string');
     if (typeof params !== 'object') {
+      immediate = shrinkData; // eslint-disable-line
       shrinkData = callback; // eslint-disable-line
       callback = params; // eslint-disable-line
       params = null; // eslint-disable-line
     }
     if (typeof callback !== 'function') {
+      immediate = shrinkData; // eslint-disable-line
       shrinkData = callback; // eslint-disable-line
       callback = null; // eslint-disable-line
     }
