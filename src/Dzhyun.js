@@ -302,6 +302,8 @@ class Dzhyun extends EventEmiter {
     const request = new Request({ qid, serviceUrl, queryObject, callback, shrinkData });
     request.cancel = this.cancel.bind(this, qid);
     request.start = () => {
+      const sid = (request._sid || 0) + 1; // 用于保证只有最后一次确实做请求
+      request._sid = sid;
       this._requests[qid] = request;
       let options;
       this._connection().then((conn) => {
@@ -314,6 +316,10 @@ class Dzhyun extends EventEmiter {
         }
         return conn;
       }).then((conn) => {
+        // 被取消就不再请求
+        if (this._requests[qid] !== request || request._sid !== sid) {
+          return;
+        }
         const requestParams = formatParams(queryObject);
         conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
       });

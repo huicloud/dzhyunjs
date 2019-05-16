@@ -916,6 +916,8 @@ var Dzhyun = function (_EventEmiter2) {
       var request = new Request({ qid: qid, serviceUrl: serviceUrl, queryObject: queryObject, callback: callback, shrinkData: shrinkData });
       request.cancel = this.cancel.bind(this, qid);
       request.start = function () {
+        var sid = (request._sid || 0) + 1; // 用于保证只有最后一次确实做请求
+        request._sid = sid;
         _this8._requests[qid] = request;
         var options = void 0;
         _this8._connection().then(function (conn) {
@@ -928,6 +930,10 @@ var Dzhyun = function (_EventEmiter2) {
           }
           return conn;
         }).then(function (conn) {
+          // 被取消就不再请求
+          if (_this8._requests[qid] !== request || request._sid !== sid) {
+            return;
+          }
           var requestParams = formatParams(queryObject);
           conn.request(requestParams ? serviceUrl + '?' + requestParams : serviceUrl, options);
         });
