@@ -110,6 +110,7 @@ class Dzhyun extends EventEmiter {
                 pingInterval = 30 * 1000, // 30秒
                 reconnect = false,
                 reconnectInterval = 10 * 1000, // 10秒
+                post = false,
               } = {}) {
     super();
     this.address = address;
@@ -123,6 +124,7 @@ class Dzhyun extends EventEmiter {
     this.pingInterval = pingInterval;
     this.reconnect = reconnect;
     this.reconnectInterval = reconnectInterval;
+    this.post = post;
 
     this._requests = {};
     this._resetReconnectCount();
@@ -144,7 +146,7 @@ class Dzhyun extends EventEmiter {
         .catch(err => console.warn('request token fail', err))
         .then((token) => {
           let lastTime;
-          const connection = new DzhyunConnection(this.address, { deferred: true }, {
+          const connection = new DzhyunConnection(this.address, { deferred: true, type: this.post ? 'POST' : 'GET' }, {
             open: () => {
               this.trigger('open');
               this._resetReconnectCount();
@@ -321,7 +323,19 @@ class Dzhyun extends EventEmiter {
           return;
         }
         const requestParams = formatParams(queryObject);
-        conn.request(requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl, options);
+        let message;
+        const post = queryObject.post || this.post;
+        if (this._connectionType === 'http' && post === true) {
+          message = serviceUrl;
+          options = {
+            ...options,
+            type: 'POST',
+            data: requestParams,
+          };
+        } else {
+          message = requestParams ? `${serviceUrl}?${requestParams}` : serviceUrl;
+        }
+        conn.request(message, options);
       });
     };
 

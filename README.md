@@ -47,11 +47,12 @@ new Dzhyun(options) 对于websocket方式，一个Dzhyun实例对应一个websoc
 - **options.pingInterval** `Number` 可选，设置自动ping请求的间隔毫秒数，默认30 * 1000
 - **options.reconnect** `Boolean|Number` 可选，设置当连接中断时是否自动重连并且会将当前请求重新执行，默认false，设置为数字表示自动重连的最大次数
 - **options.reconnectInterval** `Number` 可选，设置连接中断到自动重连的间隔时间毫秒数，默认10 * 1000
+- **options.post** `Boolean` 可选，http方式请求时是否使用POST请求，默认false
 
 ##### 实例方法
 Dzhyun.prototype.query(url, params, callback, shrinkData, immediate) 查询指定的接口
 - **url** `String` 必填，指定的接口url，可以带着参数（'/stkdata?obj=SH600000&field=ZhangFu'）
-- **params** `Object` 可选，设置的查询参数，会覆盖url带着的相同的参数，output,compresser,qid,sub这些参数也可以设置，会覆盖默认值
+- **params** `Object` 可选，设置的查询参数，会覆盖url带着的相同的参数，output,compresser,qid,sub这些参数也可以设置，会覆盖默认值，其实设置post: true可以做POST请求
 - **callback** `Function` 可选，回调函数，回调的参数如下
 >- **result** `Object|Error` 返回数据，如果是Error类型则是错误
 >- **counter** `Number` 响应的计数，对于订阅时有效，表示第几次推送数据

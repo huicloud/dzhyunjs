@@ -20867,6 +20867,8 @@ utf8.write = function utf8_write(string, buffer, offset) {
 "use strict";
 
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
@@ -21045,7 +21047,9 @@ var Dzhyun = function (_EventEmiter2) {
         _ref3$reconnect = _ref3.reconnect,
         reconnect = _ref3$reconnect === undefined ? false : _ref3$reconnect,
         _ref3$reconnectInterv = _ref3.reconnectInterval,
-        reconnectInterval = _ref3$reconnectInterv === undefined ? 10 * 1000 : _ref3$reconnectInterv;
+        reconnectInterval = _ref3$reconnectInterv === undefined ? 10 * 1000 : _ref3$reconnectInterv,
+        _ref3$post = _ref3.post,
+        post = _ref3$post === undefined ? false : _ref3$post;
 
     _classCallCheck(this, Dzhyun);
 
@@ -21062,6 +21066,7 @@ var Dzhyun = function (_EventEmiter2) {
     _this5.pingInterval = pingInterval;
     _this5.reconnect = reconnect;
     _this5.reconnectInterval = reconnectInterval;
+    _this5.post = post;
 
     _this5._requests = {};
     _this5._resetReconnectCount();
@@ -21089,7 +21094,7 @@ var Dzhyun = function (_EventEmiter2) {
           return console.warn('request token fail', err);
         }).then(function (token) {
           var lastTime = void 0;
-          var connection = new _dzhyunConnection2.default(_this6.address, { deferred: true }, {
+          var connection = new _dzhyunConnection2.default(_this6.address, { deferred: true, type: _this6.post ? 'POST' : 'GET' }, {
             open: function open() {
               _this6.trigger('open');
               _this6._resetReconnectCount();
@@ -21288,7 +21293,18 @@ var Dzhyun = function (_EventEmiter2) {
             return;
           }
           var requestParams = formatParams(queryObject);
-          conn.request(requestParams ? serviceUrl + '?' + requestParams : serviceUrl, options);
+          var message = void 0;
+          var post = queryObject.post || _this8.post;
+          if (_this8._connectionType === 'http' && post === true) {
+            message = serviceUrl;
+            options = _extends({}, options, {
+              type: 'POST',
+              data: requestParams
+            });
+          } else {
+            message = requestParams ? serviceUrl + '?' + requestParams : serviceUrl;
+          }
+          conn.request(message, options);
         });
       };
 
