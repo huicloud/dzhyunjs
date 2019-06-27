@@ -1702,6 +1702,10 @@ var Dzhyun = function (_EventEmiter2) {
         _this8._connection().then(function (conn) {
           if (_this8._connectionType === 'http') {
             options = queryObject.output === 'pb' ? { dataType: 'arraybuffer' } : undefined;
+            // 参数中带有token则不需要再生成
+            if (queryObject.token) {
+              return conn;
+            }
             return _this8._tokenPromise().then(function (token) {
               queryObject.token = token;
               return conn;
